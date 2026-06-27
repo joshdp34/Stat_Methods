@@ -1,0 +1,15 @@
+# Quarto render output
+/_book/
+/_site/
+/.quarto/
+
+# R / RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Rdata
+*.Rproj
+
+# OS files
+.DS_Store
+Thumbs.db

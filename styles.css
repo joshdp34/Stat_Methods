@@ -1,0 +1,17 @@
+blank {
+color: transparent; 
+text-decoration: underline; 
+text-decoration-color: black;
+cursor: pointer; 
+}
+    
+blank.clicked {
+  color: red; 
+}
+
+.sidebar .chapter-number {
+    color: #FFB81c;
+}
+
+
+

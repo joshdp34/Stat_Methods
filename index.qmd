@@ -1,0 +1,11 @@
+# Introduction {.unnumbered}
+
+These are the lecture notes for STA 2381 - Introductory Statistical Methods.
+
+**Prerequisites:** None 
+    
+#### Course Description:
+
+Parametric statistical methods. Topics range from descriptive statistics through regression and one-way analysis of variance. Applications are typically from biology and medicine. Computer data analysis is required.
+
+

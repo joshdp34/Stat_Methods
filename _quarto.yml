@@ -1,0 +1,79 @@
+project:
+  type: book
+  
+
+
+book:
+  title: |
+    STA 2381 Introductory Statistical Methods
+  sidebar:
+    style: "docked"
+    search: true
+    title: " "
+    background: "#154734"
+    foreground: "#FFB81c"
+  # page-footer: 
+  #   left: |
+  #     STA 2381
+  reader-mode: true
+  page-navigation: false
+  
+  chapters:
+    - index.qmd
+    - 01.qmd
+    - 02.qmd
+    # - 03.qmd
+    # - 04.qmd
+    # - 05.qmd
+    # - 06.qmd
+    # - 07.qmd
+    # - 08.qmd
+    # - 09.qmd
+    # - 10.qmd
+    # - 11.qmd
+    # - 12.qmd
+    # - 13.qmd
+    # - 14.qmd
+    
+
+
+
+execute: 
+  warning: false
+  message: false
+  echo: false
+  freeze: auto
+
+format:
+  html:
+    theme: cosmo
+    code-link: true
+    fig-width: 6
+    fig-height: 3
+    number-depth: 2
+    include-in-header:
+      text: |
+        <style type="text/css">
+        .sidebar .chapter-number {
+        color: #FFB81c;
+        }
+        .center-panel.quarto-layout-panel {
+        justify-content: center;
+        column-gap: 1rem;
+        }
+        </style>
+  # pdf:
+  #   documentclass: book
+  #   number-depth: 3
+  #   keep-tex: true
+  #   output-file: index.pdf
+
+custom-callout:
+  example:
+    title: "Example"
+    icon-symbol: "📈"
+    appearance: "simple"
+    color: "#008000"
+filters:
+- custom-callout
+
