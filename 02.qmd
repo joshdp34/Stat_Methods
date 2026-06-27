@@ -112,6 +112,33 @@ The main drawback is increased variability. If individuals within a cluster are 
 ::: {.example title="Example 2.5"}
 A company operates offices in 10 cities across the country, each employing roughly the same number of workers and performing similar roles. To conduct an employee satisfaction survey, the company randomly selects 3 offices and surveys every employee in those locations. This approach greatly reduces travel and administrative effort. However, it relies on the assumption that offices are reasonably similar; if workplace culture or management practices vary substantially by city, the survey results may be less precise or even misleading.
 
+In R, we randomly select clusters (offices) and then keep all employees within them:
+
+```{r}
+#| echo: true
+
+library(tidyverse)
+
+# Sampling frame: 10 offices, ~50 employees each
+employees <- tibble(
+  id = 1:500,
+  office = rep(paste("Office", 1:10), each = 50)
+)
+
+# Randomly select 3 offices
+set.seed(1004)
+selected_offices <- sample(unique(employees$office), size = 3)
+selected_offices
+
+# Keep all employees in the selected offices
+cluster_sample <- employees |>
+  filter(office %in% selected_offices)
+
+count(cluster_sample, office)
+```
+
+Notice the difference from stratified sampling: here we sample *clusters* (offices) rather than individuals, and then include *everyone* within the selected clusters.
+
 :::
 
 
@@ -196,7 +223,6 @@ A researcher studying freelance gig workers begins by interviewing one participa
 
 4.  Explain why voluntary response samples often yield extreme views and cannot be trusted for generalizing to a population.
 
-5.  In JMP, how could you create a simple random sample of 150 observations from a data table with 2,000 rows?
 :::
 
 ::: {.callout-tip collapse="true" title="Solutions"}
@@ -296,7 +322,7 @@ This wording assumes agreement and pressures respondents to conform.
 
 #### Loaded questions
 
-**Loaded questions** embed an assumption-often a controversial or emotionally charged one-into the question itself. Respondents are forced to accept the premise in order to answer, even if they disagree with it.
+**Loaded questions** embed an assumption, often a controversial or emotionally charged one, into the question itself. Respondents are forced to accept the premise in order to answer, even if they disagree with it.
 
 *Biased:*
 
@@ -330,10 +356,7 @@ A respondent might plan to leave work but not return to school, or vice versa.
 
 *Another example:*
 *Biased:* “How would you rate our products and level of service?”
-*Unbiased:*
-
-> “How would you rate the quality of our products?”
-> “How would you rate the quality of our customer service?”
+*Unbiased:* “How would you rate the quality of our products?” “How would you rate the quality of our customer service?”
 
 
 #### Ambiguous wording
@@ -430,7 +453,7 @@ For example, a business school might track a cohort of MBA graduates from the cl
 
 In a **case–control study**, individuals with a particular outcome (“cases”) are compared to similar individuals without it (“controls”) to look for differences in past exposures.
 
-For example, a bank might compare 200 loans that defaulted (cases) with 800 similar loans that were repaid on time (controls) to investigate whether certain application characteristics---such as debt-to-income ratio or employment length---were more common among defaults.
+For example, a bank might compare 200 loans that defaulted (cases) with 800 similar loans that were repaid on time (controls) to investigate whether certain application characteristics, such as debt-to-income ratio or employment length, were more common among defaults.
 
 Because participants choose their own behaviors, observational data reflect the real world and are often the only practical way to study outcomes that cannot be ethically or feasibly assigned. Observational studies are usually quicker and cheaper than experiments, but they have a critical limitation: you cannot be sure whether differences in outcomes are caused by the factor of interest or by other variables that differ between groups.
 
