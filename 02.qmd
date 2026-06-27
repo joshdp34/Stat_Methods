@@ -4,43 +4,43 @@
 
 > "And I knew exactly what to do. But in a much more real sense, I had no idea what to do." - Michael Scott
 
-A sample is a subset of a population, but not every subset is equally informative. A **representative sample** mirrors the key characteristics of the population closely enough that analyzing the sample leads to the same conclusions you would reach by studying the entire population. Put differently, it is a smaller group whose results accurately reflect those of the larger group. Designing studies that produce representative samples lies at the core of statistics-it allows us to save time and resources without compromising the credibility of our conclusions.
+A sample is a subset of a population, but not every subset is equally informative. A **representative sample** mirrors the key characteristics of the population closely enough that conclusions drawn from the sample match those you would reach by studying the entire population. Designing studies that produce representative samples is central to statistics.
 
 ### Probability vs. non-probability sampling
 
 There are two big approaches to sampling:
 
--   In **probability sampling**, you use random mechanisms so that every member of the population has a known chance of being selected. This ensures that any differences between the sample and the population are due to random sampling error, not researcher choice, and makes it possible to quantify uncertainty in estimates.
--   In **non-probability sampling**, you choose participants based on convenience, volunteer responses, judgement or quotas. These methods are cheaper and often necessary for exploratory or qualitative work, but they make it hard to know whether the sample really reflects the population. Lack of a representative sample reduces the validity of conclusions and can introduce sampling bias.
+-   In **probability sampling**, every member of the population has a known chance of being selected. This makes it possible to quantify uncertainty and attribute differences between sample and population to random chance alone.
+-   In **non-probability sampling**, participants are chosen based on convenience, volunteer responses, judgment, or quotas. These methods are cheaper but make it difficult to know whether the sample reflects the population, which can introduce bias.
 
 Whenever you want to generalize, probability sampling is the gold standard.
 
 ### Simple random sampling (SRS)
 
-In a **simple random sample (SRS)**, every individual in the population has an equal probability of being selected, and every possible sample of a given size is equally likely. To carry out an SRS, you must first have a **sampling frame**, which is a complete list of all units in the population. You then use a random mechanism-such as a random number generator or random number table-to choose the sample.
+In a **simple random sample (SRS)**, every individual in the population has an equal probability of being selected, and every possible sample of a given size is equally likely. To carry out an SRS, you need a **sampling frame**---a complete list of all units in the population---and a random mechanism (such as a random number generator) to choose units.
 
-In practice, simple random sampling can be done **with replacement** or **without replacement**. Sampling without replacement is far more common in real studies, since it prevents the same individual from being selected more than once. Sampling with replacement is sometimes useful in theoretical settings, but it is rarely appropriate when collecting data from people or physical units.
+In practice, sampling is almost always done **without replacement** so the same unit cannot appear twice. Sampling with replacement is mainly a theoretical concept.
 
-The main advantage of an SRS is its fairness and transparency: because selection is purely random, it avoids systematic bias in who is included. However, SRS also has limitations. It requires a complete and accurate sampling frame, which may not exist or may be difficult to obtain. In addition, when a population is geographically dispersed or hard to reach, implementing an SRS can be costly or impractical.
+The main advantage of SRS is fairness: purely random selection avoids systematic bias. The main limitations are that it requires a complete sampling frame and can be costly when the population is large or geographically dispersed.
 
 ::: {.example title="Example 2.1"}
 Suppose you want to survey 100 employees of a social media marketing company out of 1,000. You assign each employee a number from 1 to 1,000 and use a random number generator to select 100 distinct numbers. The employees corresponding to those numbers form your sample. Because each employee had an equal chance of being selected, the resulting sample is likely to be representative, especially if the sample size is sufficiently large.
 
-To do this in JMP, suppose you have the list of 1,000 names like you see below.
+In R, suppose you have the employee IDs stored in a vector. You can draw a simple random sample using `sample()`:
 
-![](images/ex0201_list.png) 
+```{r}
+#| echo: true
 
-If we wanted to get a random sample of 20, we would just click on Tables&#8594;Subset.
+employee_ids <- 1:1000
 
-![](images/ex0201_subset.png) 
+set.seed(1004)
+my_sample <- sample(employee_ids, size = 100)
 
-This will open up the following window.
+# First 10 selected IDs
+head(my_sample, 10)
+```
 
-![](images/ex0201_window.png) 
-
-Selecting 'Random - sample size', entering the desired sample size in the box next to it, and then clicking 'OK' will make a new data table with 20 of the names selected at random.
-
-Note the option above labeled 'Random - sampling rate' will allow you to choose a proportion of the population to randomly sample instead of choosing a sample size. 
+The `sample()` function draws without replacement by default, so no employee can be selected twice. Changing the `size` argument lets you adjust the sample size, and changing the seed produces a different (but reproducible) sample.
 :::
 
 ::: {.example title="Example 2.2"}
@@ -49,11 +49,9 @@ A university wants to estimate the average number of hours per week that undergr
 
 ### Systematic sampling
 
-**Systematic sampling** is a practical alternative to simple random sampling that reduces logistical effort while preserving much of the randomness. Instead of selecting units entirely at random, you begin with an ordered sampling frame and choose every $k$-th unit, where $k$ is the *sampling interval*. The value of $k$ is typically determined by dividing the population size ($N$) by the desired sample size ($n$) (so $k \approx N/n$). To introduce randomness, you first select a random starting point between 1 and $k$, then continue by selecting units at fixed intervals.
+**Systematic sampling** is a practical alternative to SRS. You begin with an ordered sampling frame and choose every $k$-th unit, where $k = N/n$ (population size divided by desired sample size). To introduce randomness, you randomly select a starting point between 1 and $k$, then proceed at fixed intervals.
 
-When the ordering of the list is unrelated to the variable being studied, systematic sampling closely approximates a simple random sample. It is often faster, easier to explain, and simpler to implement-especially in field settings or large administrative lists-because it avoids repeated random number generation.
-
-However, systematic sampling carries an important risk: **periodicity**. If the list has a repeating structure or is sorted in a way that is correlated with the outcome of interest, the method can unintentionally overrepresent some types of units and underrepresent others. For example, if employees are grouped by department, shift, or seniority, selecting every $k$-th name may systematically favor or exclude certain groups. In such cases, the resulting sample may be biased, even though the selection rule appears objective.
+When the list order is unrelated to the variable being studied, systematic sampling closely approximates SRS and is simpler to implement. However, it carries a risk: **periodicity**. If the list has a repeating pattern correlated with the outcome, the method can systematically over- or underrepresent certain groups.
 
 ::: {.example title="Example 2.3"}
 
@@ -65,30 +63,51 @@ All employees of a company are listed in alphabetical order. You want to sample 
 ### Stratified sampling
 
 
-In **stratified sampling**, the population is first divided into distinct, non-overlapping subgroups called *strata*, based on a characteristic that is relevant to the study (such as gender, age group, geographic region, or job level). Each individual in the population belongs to exactly one stratum. After forming the strata, a random sample is drawn *within each stratum*, rather than from the population as a whole.
+In **stratified sampling**, the population is divided into distinct, non-overlapping subgroups called *strata* based on a relevant characteristic (such as job level, region, or income bracket). A random sample is then drawn *within each stratum*.
 
-The most common approach is *proportional stratified sampling*, where the number of units sampled from each stratum is proportional to that stratum’s share of the population. This guarantees that the composition of the sample mirrors the composition of the population with respect to the stratifying variable. In some studies, researchers may intentionally oversample smaller or especially important strata (called *disproportionate stratified sampling*) to ensure enough data for detailed subgroup analysis, adjusting for this later in the analysis.
+The most common approach is *proportional stratified sampling*, where each stratum’s share of the sample matches its share of the population. Researchers may also intentionally oversample smaller strata (*disproportionate stratified sampling*) to ensure enough data for subgroup analysis, adjusting for this later.
 
-Stratified sampling has several advantages. By forcing representation from each stratum, it prevents small but important subgroups from being underrepresented due to random chance. In addition, when individuals within a stratum are relatively similar to one another but different across strata, stratification can substantially **reduce sampling variability**, leading to more precise estimates than a simple random sample of the same size.
-
-The main drawback is increased complexity. Stratified sampling requires reliable information to classify individuals into strata before sampling begins, as well as separate sampling procedures within each stratum. This can increase administrative effort, cost, and the potential for implementation errors if strata are poorly defined or misclassified.
+Stratified sampling prevents small but important subgroups from being underrepresented and can **reduce sampling variability** when individuals within a stratum are similar to one another but different across strata. The main drawback is increased complexity: you need reliable information to classify individuals into strata before sampling begins.
 
 ::: {.example title="Example 2.4"}
 
 A company has 800 junior employees and 200 senior employees. Because job seniority is expected to influence workplace satisfaction, the company divides employees into two strata: junior and senior. To draw a sample of 100 employees that reflects the population structure, the company randomly selects 80 junior employees and 20 senior employees. The resulting sample preserves the original 80/20 split, ensuring that both groups are appropriately represented and that comparisons between junior and senior employees are meaningful.
+
+In R, we can build the sampling frame and sample within each stratum separately:
+
+```{r}
+#| echo: true
+
+library(tidyverse)
+
+# Build the sampling frame
+employees <- tibble(
+  id = 1:1000,
+  level = c(rep("Junior", 800), rep("Senior", 200))
+)
+
+# Sample proportionally within each stratum
+set.seed(1004)
+stratified_sample <- employees |>
+  group_by(level) |>
+  slice_sample(prop = 0.10) |>
+  ungroup()
+
+count(stratified_sample, level)
+```
+
+By sampling within each stratum, we guarantee the 80/20 split is preserved regardless of what random numbers are drawn.
 
 :::
 
 
 ### Cluster sampling
 
-**Cluster sampling** also divides the population into groups, but the logic is fundamentally different from stratified sampling. In cluster sampling, each **cluster** is intended to be a small-scale version of the entire population-a *mini-population* that contains a diverse mix of individuals. Rather than ensuring representation from every group, the goal is to reduce cost by limiting how many groups are studied.
+**Cluster sampling** also divides the population into groups, but the logic differs from stratified sampling. Each **cluster** is intended to be a small-scale version of the entire population---a *mini-population* containing a diverse mix of individuals. The goal is to reduce cost by studying only a few clusters rather than reaching individuals across many locations.
 
-To implement cluster sampling, the population is first partitioned into clusters, often based on geography, organizational units, or naturally occurring groupings (such as schools, offices, or neighborhoods). A random sample of clusters is then selected, and data are collected from *all individuals within the selected clusters* (one-stage cluster sampling) or from a random subset of individuals within those clusters (two-stage cluster sampling).
+A random sample of clusters is selected, and data are collected from *all individuals within the selected clusters* (one-stage) or from a random subset within them (two-stage). This dramatically reduces travel and administrative costs, which is why cluster sampling is common in large-scale surveys.
 
-The primary advantage of cluster sampling is efficiency. When populations are large and geographically dispersed, it is often impractical or prohibitively expensive to reach individuals scattered across many locations. By concentrating data collection within a small number of clusters, researchers can dramatically reduce travel, coordination, and administrative costs. For this reason, cluster sampling is commonly used in large-scale surveys, public health studies, and educational assessments.
-
-The main drawback is increased variability. If individuals within a cluster tend to be similar to one another-and clusters differ meaningfully from one another-then sampling only a few clusters may fail to capture the full diversity of the population. This *intra-cluster similarity* reduces the effective amount of information in the sample and can lead to larger sampling variance than a simple random sample of the same size. In practice, this means cluster sampling often requires a larger total sample size to achieve comparable precision.
+The main drawback is increased variability. If individuals within a cluster are similar to one another but clusters differ from each other, sampling only a few clusters may miss the full diversity of the population. Cluster sampling often requires a larger total sample size to achieve precision comparable to SRS.
 
 ::: {.example title="Example 2.5"}
 A company operates offices in 10 cities across the country, each employing roughly the same number of workers and performing similar roles. To conduct an employee satisfaction survey, the company randomly selects 3 offices and surveys every employee in those locations. This approach greatly reduces travel and administrative effort. However, it relies on the assumption that offices are reasonably similar; if workplace culture or management practices vary substantially by city, the survey results may be less precise or even misleading.
@@ -99,15 +118,11 @@ A company operates offices in 10 cities across the country, each employing rough
 
 ### Non-probability methods
 
-In some research settings, random selection is impossible, impractical, or unnecessary. **Non-probability sampling methods** rely on researcher judgment or participant availability rather than chance. Because individuals do not have known or equal probabilities of selection, these methods cannot guarantee that the sample is representative of the population. As a result, conclusions drawn from non-probability samples should be interpreted cautiously and generally should not be generalized to a broader population.
-
-Despite this limitation, non-probability methods are widely used in practice. They are common in exploratory studies, pilot research, qualitative work, and studies involving hard-to-reach populations, where constructing a complete sampling frame or implementing random selection is unrealistic. In such cases, the goal is often to generate insights, identify patterns, or refine research questions rather than to make precise population-level estimates.
+In some settings, random selection is impossible or impractical. **Non-probability sampling methods** rely on researcher judgment or participant availability rather than chance. Because individuals do not have known probabilities of selection, these methods cannot guarantee representativeness, so conclusions should be interpreted cautiously. They are most useful for exploratory work, pilot studies, or hard-to-reach populations where constructing a sampling frame is unrealistic.
 
 #### Convenience sampling
 
-A **convenience sample** consists of individuals who are easiest for the researcher to access. Participants are selected simply because they are readily available, willing, or nearby. This approach is inexpensive, fast, and easy to implement, which makes it appealing for classroom projects, preliminary studies, and early stages of research.
-
-However, convenience sampling comes with serious limitations. Because selection is driven by accessibility rather than randomness, certain groups may be systematically overrepresented while others are excluded entirely. This can introduce substantial bias, meaning the results may reflect the characteristics of the convenience group rather than those of the population of interest. For this reason, findings from convenience samples should not be treated as broadly generalizable.
+A **convenience sample** consists of individuals who are easiest to access---those who are readily available, willing, or nearby. It is inexpensive and fast, but because selection is driven by accessibility, certain groups may be systematically over- or underrepresented. Findings from convenience samples should not be treated as broadly generalizable.
 
 
 ::: {.example title="Example 2.6"}
@@ -119,11 +134,7 @@ You want to learn about student perceptions of campus support services. After ea
 
 #### Voluntary response sampling
 
-A **voluntary response sample** is formed when individuals choose for themselves whether to participate in a study. Invitations are typically broad-such as open surveys, online polls, or public feedback forms-but participation is entirely self-selected. Because respondents are not randomly chosen, the resulting sample often reflects the views of those who feel most strongly about the topic.
-
-The key issue with voluntary response sampling is *self-selection bias*. People with intense opinions, strong grievances, or high levels of engagement are much more likely to respond than those who are indifferent or moderately affected. As a result, voluntary response samples tend to exaggerate extremes and provide a distorted picture of average attitudes or behaviors.
-
-Although voluntary response samples are easy and inexpensive to collect, they are inappropriate for drawing conclusions about a population as a whole. They are best used for gathering feedback, identifying potential concerns, or generating hypotheses rather than for making quantitative estimates.
+A **voluntary response sample** is formed when individuals choose for themselves whether to participate---such as open online polls or public feedback forms. The key issue is *self-selection bias*: people with strong opinions are much more likely to respond than those who are indifferent, so the results tend to exaggerate extremes. Voluntary response samples are useful for gathering feedback but inappropriate for drawing population-level conclusions.
 
 ::: {.example title="Example 2.7"}
 
@@ -134,29 +145,21 @@ You email a survey to the entire student body asking for opinions about a new ca
 
 #### Purposive sampling
 
-In **purposive sampling**, participants are deliberately selected by the researcher because they possess characteristics, experiences, or knowledge that are especially relevant to the research question. Rather than aiming for representativeness, the goal is to obtain *information-rich cases* that can provide deep insight into a particular phenomenon.
-
-This method is common in qualitative research, case studies, and applied settings where understanding *how* or *why* something occurs is more important than estimating its prevalence. Researchers often aim for diversity within the purposive sample-such as selecting participants with different backgrounds or experiences-to capture a range of perspectives.
-
-The main limitation of purposive sampling is that selection is subjective and non-random. While the resulting data can be rich and informative, it cannot support population-level inference or precise numerical claims.
+In **purposive sampling**, participants are deliberately selected because they possess characteristics or knowledge especially relevant to the research question. The goal is to obtain *information-rich cases* rather than a representative cross-section. This method is common in qualitative research and case studies. The main limitation is that selection is subjective, so the results cannot support population-level inference.
 
 ::: {.example title="Example 2.8"}
 
-You want to understand how well university services support students with disabilities. You intentionally recruit students with different types of disabilities and varying levels of accommodation needs. This allows you to explore common challenges and contrasts across experiences, but it does not allow you to estimate what proportion of all disabled students share those experiences.
+A consulting firm wants to understand why some small businesses thrive after a recession while others fail. They intentionally select business owners from different industries, regions, and revenue levels to capture a range of experiences. This allows them to identify common success factors, but it does not allow them to estimate what proportion of all small businesses share those experiences.
 
 :::
 
 #### Snowball sampling
 
-**Snowball sampling** is a recruitment method in which existing participants help identify and recruit additional participants. The process typically begins with a small number of initial subjects, who then refer others they know who meet the study criteria. Over time, the sample grows through these social connections, much like a snowball rolling downhill.
-
-Snowball sampling is especially useful for studying *hidden, stigmatized, or hard-to-reach populations*, such as individuals experiencing homelessness, undocumented workers, or members of informal networks. In these cases, traditional sampling frames may not exist, and trust is often essential for participation.
-
-However, snowball sampling provides little control over who is included. Because referrals occur within social networks, the sample may overrepresent individuals who are more connected or similar to the initial participants. This can introduce substantial bias and limit the generalizability of findings.
+**Snowball sampling** is a recruitment method in which existing participants refer others who meet the study criteria. The sample grows through social connections, much like a snowball rolling downhill. It is especially useful for *hard-to-reach populations* where traditional sampling frames do not exist. However, because referrals occur within social networks, the sample may overrepresent well-connected individuals and underrepresent others.
 
 ::: {.example title="Example 2.9"}
 
-To study experiences of homelessness, you begin by interviewing one participant who agrees to take part in the study. She then introduces you to others she knows who are also homeless, and those participants provide additional referrals. While this approach allows you to access a difficult-to-reach population, the resulting sample may reflect a narrow subset of experiences shaped by shared social connections.
+A researcher studying freelance gig workers begins by interviewing one participant found through an online forum. That participant introduces the researcher to others in their network, and those participants provide additional referrals. While this approach reaches a population with no central roster, the resulting sample may reflect a narrow subset of experiences shaped by shared social connections.
 
 :::
 
@@ -187,7 +190,7 @@ To study experiences of homelessness, you begin by interviewing one participant 
     a)  Name two probability sampling methods you could use.
     b)  Briefly explain why a convenience sample of your friends might mislead you.
 
-2.  A researcher selects every 5th name from a sorted list of patients to survey. What sampling method is this? Under what circumstance might this method introduce bias?
+2.  A researcher selects every 5th name from a sorted list of customers to survey. What sampling method is this? Under what circumstance might this method introduce bias?
 
 3.  Compare stratified sampling and cluster sampling. Give an example of a scenario where each would be appropriate.
 
@@ -199,7 +202,7 @@ To study experiences of homelessness, you begin by interviewing one participant 
 ::: {.callout-tip collapse="true" title="Solutions"}
 1.  (a)*Simple random sampling* (assign each first-year student a number and randomly select using a random number generator); *stratified sampling* (divide students by major or residence hall and sample proportionally within each group). (b) Your friends are likely from similar classes or social circles, so they may have similar study habits; they might not reflect the broader student body.
 
-2.  This is *systematic sampling*. It works well if the list has no pattern related to the outcome. If patients are sorted by appointment time, every 5th patient might always be a morning appointment, which could bias results if morning and afternoon patients differ.
+2.  This is *systematic sampling*. It works well if the list has no pattern related to the outcome. If customers are sorted by account type, every 5th customer might always be from the same tier, which could bias results if tiers differ meaningfully.
 
 3.  *Stratified sampling* divides the population into meaningful groups and samples within each (e.g., sampling men and women separately when studying height). It ensures each subgroup is represented. *Cluster sampling* selects whole groups (e.g., choosing three hospitals at random and surveying all nurses within them) to save cost when the population is geographically spread out.
 
@@ -211,27 +214,27 @@ To study experiences of homelessness, you begin by interviewing one participant 
 > "All life is an experiment. The more experiments you make the better." -Ralph Waldo Emerson
 
 
-Statistics provides two complementary approaches for gathering evidence: **surveys** and **experiments**. In a survey, we select individuals from a population, collect information by asking questions, and summarize the resulting data. In an experiment, we actively assign treatments to units and observe their responses. In both cases, sound inference depends on thoughtful sampling and careful study design. While other methods of data collection exist, surveys and experiments are the approaches most people have in mind when they think about gathering data.
+Statistics provides two complementary approaches for gathering evidence: **surveys** and **experiments**. In a survey, we select individuals from a population and collect information. In an experiment, we actively assign treatments to units and observe their responses. In both cases, sound inference depends on thoughtful sampling and careful study design.
 
 
 
 ### Principles of good experimental design
 
-The goal of an experiment is to **isolate the causal effect of a treatment** by systematically controlling other sources of variation. Experiments give the researcher direct control over how treatments are assigned. To ensure that any observed differences in outcomes can be attributed to the treatment itself-and not to hidden biases or confounding factors-well-designed experiments rely on four core principles.
+The goal of an experiment is to **isolate the causal effect of a treatment** by controlling other sources of variation. Well-designed experiments rely on four core principles.
 
 
 #### Randomization
 
-**Randomization** is the foundation of experimental design. Assigning experimental units to treatment conditions by chance ensures that, on average, the groups being compared are similar with respect to both observed characteristics (such as age or prior experience) and unobserved characteristics (such as motivation or genetic differences). This balance allows differences in outcomes to be interpreted as causal effects of the treatment rather than artifacts of preexisting differences.
+**Randomization** is the foundation of experimental design. Assigning units to treatment conditions by chance ensures that, on average, groups are similar on both observed and unobserved characteristics. This allows differences in outcomes to be interpreted as causal effects rather than artifacts of preexisting differences.
 
-In a **completely randomized design**, each unit is assigned to a treatment independently of the others. For example, in a sleep study, students might be randomly assigned to different cell phone usage limits before bedtime. This approach is simple and effective when experimental units are fairly homogeneous.
+In a **completely randomized design**, each unit is assigned to a treatment independently. For example, customers might be randomly assigned to see one of two website layouts. This approach is simple and effective when units are fairly homogeneous.
 
-In a **randomized block design**, units are first grouped into blocks based on a characteristic known to influence the response, and treatments are then randomly assigned within each block. For instance, agricultural plots might be blocked by rainfall zone before assigning fertilizer types. Blocking removes predictable variation due to the blocking variable, allowing randomization to work more efficiently within each group.
+In a **randomized block design**, units are first grouped into blocks based on a characteristic known to influence the response, and treatments are randomly assigned within each block. For instance, stores might be blocked by region before assigning different promotional strategies. Blocking removes predictable variation, allowing randomization to work more efficiently within each group.
 
-Randomization also applies beyond treatment assignment. In industrial or laboratory settings, the *order of experimental runs* should be randomized to prevent time-related factors-such as equipment warming, operator fatigue, or ambient temperature-from becoming confounded with treatment effects.
+Randomization also applies to the *order of experimental runs*. In manufacturing or testing settings, randomizing the run order prevents time-related factors---such as equipment warming or operator fatigue---from becoming confounded with treatment effects.
 
 ::: {.example title="Example 2.10"}
-In a drug study with 20 mice and two test kits (A and B), you might randomly assign 10 mice to kit A and the remaining 10 to kit B. Differences in age, weight, or health are then spread randomly across the two groups, preventing these factors from systematically favoring one treatment over the other.
+A company wants to compare two training programs (A and B) for new hires. They randomly assign 10 of 20 new employees to Program A and the remaining 10 to Program B. Differences in prior experience, education, or aptitude are spread randomly across the two groups, preventing these factors from systematically favoring one program.
 
 :::
 
@@ -239,16 +242,14 @@ In a drug study with 20 mice and two test kits (A and B), you might randomly ass
 
 #### Control and placebo
 
-A well-designed experiment includes a meaningful comparison, typically between a **treatment group** and a **control group**. The control group provides a baseline against which the treatment effect is measured. Depending on the context, the control may receive no treatment, standard care, or a **placebo**-a treatment designed to mimic the experience of receiving the real intervention without containing the active ingredient.
+A well-designed experiment includes a meaningful comparison, typically between a **treatment group** and a **control group**. The control group provides a baseline against which the treatment effect is measured. The control may receive no treatment, the current standard, or a **placebo**---something designed to mimic the experience of receiving the intervention without the active component.
 
-Placebo controls are especially important in medical and psychological studies because participants’ expectations alone can influence outcomes. Improvements due to belief, attention, or the act of being treated are known as **placebo effects**. By giving both groups identical experiences except for the active component, researchers can attribute differences in outcomes specifically to the treatment.
+Placebo controls matter because participants’ expectations alone can influence outcomes---a phenomenon called the **placebo effect**. By giving both groups identical experiences except for the active component, researchers can attribute differences in outcomes specifically to the treatment.
 
 
 #### Replication
 
-**Replication** refers to applying each treatment to multiple experimental units. Replication is essential because outcomes naturally vary from unit to unit, even under identical conditions. By observing this variability, researchers can estimate the amount of random noise in the data and determine whether observed differences between treatments are larger than would be expected by chance alone.
-
-Replication increases the *precision* of estimated treatment effects and provides the information needed for statistical inference. A single observation per treatment cannot distinguish a genuine effect from an unusual outcome.
+**Replication** means applying each treatment to multiple units. Because outcomes naturally vary, replication lets us estimate the amount of random noise and determine whether observed differences are larger than we would expect by chance. A single observation per treatment cannot distinguish a real effect from an unusual outcome.
 
 ::: {.example title="Example 2.11"}
 
@@ -258,26 +259,20 @@ Measuring battery life under a specific charging condition using several batteri
 
 #### Blocking
 
-**Blocking** is used when a nuisance variable-one that is not of primary interest but is known to affect the response-can be identified in advance. In a **block design**, experimental units are grouped into relatively homogeneous blocks based on this variable, and treatments are randomized within each block.
+**Blocking** is used when a nuisance variable---one that is not of primary interest but is known to affect the response---can be identified in advance. Units are grouped into homogeneous blocks based on this variable, and treatments are randomized within each block.
 
-Blocking reduces unexplained variability by accounting for known sources of variation. This leads to more precise estimates of treatment effects without increasing sample size.
-
-Natural blocking structures often arise in practice. In biological experiments, animals may be grouped by litter; in chemical experiments, samples may come from different batches; in education studies, students may be grouped by classroom. Treating these groupings as blocks and randomizing within them prevents block-level differences from obscuring the treatment effect.
+Blocking reduces unexplained variability, leading to more precise estimates without increasing sample size. Natural blocking structures arise often: retail stores might be blocked by sales volume tier, manufacturing runs by shift, or survey respondents by age group.
 
 ### Putting the principles together
 
-Strong experimental designs typically combine these principles rather than relying on just one. For example, an agricultural study might block plots by rainfall zone, randomly assign fertilizer treatments within each block, and replicate measurements across multiple growing seasons.
+Strong designs typically combine these principles. For example, a retail chain testing a new store layout might block stores by sales volume, randomly assign layouts within each block, and replicate the test across multiple weeks.
 
-Experiments also differ in structure. In **between-subjects designs**, each unit receives exactly one treatment condition. In **within-subjects** (or **repeated-measures**) designs, each unit experiences all treatment conditions, usually in a randomized or counterbalanced order. Within-subjects designs reduce variability by allowing each unit to serve as its own control, but they require careful attention to *order effects*, such as learning, fatigue, or carryover. Randomizing or counterbalancing the order of treatments is essential to preserve validity.
-
-Together, randomization, control, replication, and blocking form the backbone of experimental design, enabling researchers to make credible causal claims from data.
+Experiments also differ in structure. In **between-subjects designs**, each unit receives exactly one treatment. In **within-subjects** (or **repeated-measures**) designs, each unit experiences all treatments, usually in a randomized order. Within-subjects designs reduce variability by letting each unit serve as its own control, but they require attention to *order effects* such as learning or fatigue.
 
 
 ### Designing unbiased survey questions
 
-High-quality surveys require care in two distinct areas: **how respondents are selected** and **how questions are written**. Sampling determines *who* provides data (see @sec-sampling_methods); question design determines *what* information those respondents actually provide. Even a perfectly representative sample can produce misleading results if the questions themselves are biased, confusing, or poorly structured.
-
-Well-designed questions are clear, neutral, and interpretable in the same way by all respondents. Poorly designed questions can systematically distort responses, introduce bias, and lead decision-makers to draw incorrect conclusions. Below are several common pitfalls in survey question design, along with examples and revisions.
+High-quality surveys require care in two areas: **how respondents are selected** (see @sec-sampling_methods) and **how questions are written**. Even a perfectly representative sample can produce misleading results if the questions are biased or confusing. Below are common pitfalls in survey question design.
 
 #### Leading questions
 
@@ -363,27 +358,17 @@ Respondents may interpret this as referring to price, quality, customer service,
 
 ### Why this matters
 
-Survey questions shape the data you collect. Poorly worded questions can introduce bias just as surely as a flawed sampling method. Clear, neutral, and focused questions help ensure that responses reflect what respondents truly believe or experience, rather than how the question guided them. In practice, careful question design often requires multiple drafts, pilot testing, and revision-but the payoff is data that support credible, defensible conclusions.
+Poorly worded questions introduce bias just as surely as a flawed sampling method. To craft effective questions, follow these key principles:
 
+1. **Use neutral language.** Avoid emotionally charged words or implied “correct” answers. Describing a policy as “beneficial” or “harmful” nudges responses before the respondent even considers the question.
 
-To craft unbiased and effective survey questions, researchers should follow several key principles. These guidelines help ensure that respondents interpret questions consistently and feel free to answer honestly, leading to data that support meaningful conclusions.
+2. **Be specific and clear.** Define key concepts and specify time frames. Instead of “How often do you use the library?” ask “How many times have you visited the library in the past month?”
 
-1. **Use neutral language.**
-   Questions should be phrased without emotionally charged words, value judgments, or implied “correct” answers. Neutral wording allows respondents to express their true opinions rather than reacting to the tone of the question. Even subtle cues-such as describing a policy as “beneficial” or “harmful”-can influence responses. Replacing evaluative language with descriptive phrasing helps minimize this source of bias.
+3. **Ask one thing at a time.** Each item should measure a single concept. If a question combines two ideas, respondents who agree with one but not the other cannot answer accurately.
 
-2. **Be specific and clear.**
-   Vague terms can mean different things to different respondents. Whenever possible, define key concepts, specify time frames, and avoid shorthand that assumes shared understanding. For example, instead of asking “How often do you use the library?” a clearer question would be “How many times have you visited the library in the past month?” Specific wording improves consistency and makes responses easier to interpret and analyze.
+4. **Balance response options.** Scales should be symmetrical (e.g., a 5-point Likert scale from “Strongly disagree” to “Strongly agree”). Unbalanced scales push respondents toward certain answers.
 
-3. **Ask one thing at a time.**
-   Each survey item should measure a single concept. When a question combines multiple ideas, respondents may agree with one part but not the other, producing answers that are difficult to interpret. Splitting complex questions into separate items allows each concept to be measured cleanly and reduces confusion for respondents.
-
-4. **Balance response options.**
-   Response scales should be symmetrical and evenly spaced, offering a full range of plausible choices. For example, a 5-point Likert scale ranging from “Strongly disagree” to “Strongly agree” treats positive and negative responses equally and includes a neutral midpoint if appropriate. Unbalanced or uneven scales can push respondents toward certain answers and distort the results.
-
-5. **Pilot test your survey.**
-   Even well-intentioned questions can be misunderstood. Pilot testing the survey with a small group of respondents helps identify ambiguous wording, confusing response options, or unintended interpretations. Feedback from pilot tests often reveals issues that are not obvious to the survey designer but can significantly affect data quality if left unaddressed.
-
-Together, these principles promote clarity, neutrality, and fairness in survey design. By reducing confusion and bias, they help respondents provide thoughtful, accurate answers-and help researchers draw conclusions that are trustworthy and defensible.
+5. **Pilot test your survey.** Testing with a small group reveals ambiguous wording and unintended interpretations that are not obvious to the designer.
 
 
 
@@ -416,7 +401,7 @@ Together, these principles promote clarity, neutrality, and fairness in survey d
 ::: {.callout-tip collapse="true" title="Solutions"}
 1.  *Random sampling* determines who gets into the study. Every member of the population has a known chance of selection, improving generalizability. *Random assignment* determines which condition participants experience, creating comparable groups and allowing causal conclusions. Surveys rely on random sampling; experiments rely on random assignment.
 
-2.  **Randomization:** assign units by chance (e.g., randomize phone use levels to study sleep). **Control/placebo:** include a baseline or placebo condition to isolate the treatment effect. **Replication:** repeat treatments on multiple units, like testing several batteries under the same condition. **Blocking:** group units by a nuisance factor (e.g., soil type) and randomize within blocks.
+2.  **Randomization:** assign units by chance (e.g., randomly assign stores to different display layouts). **Control/placebo:** include a baseline condition to isolate the treatment effect. **Replication:** repeat treatments on multiple units, like testing several batteries under the same condition. **Blocking:** group units by a nuisance factor (e.g., store size) and randomize within blocks.
 
 3.  The question is *double-barreled*-it asks about cost *and* quality. Rewrite as two separate questions (e.g., “How satisfied are you with the cost of your textbooks?” and “How satisfied are you with the quality of your textbooks?”).
 
@@ -427,59 +412,45 @@ Together, these principles promote clarity, neutrality, and fairness in survey d
 
 > "You can observe a lot by just watching." - Yogi Berra
 
-At first glance, collecting data looks the same whether you’re watching what happens or deliberately changing something. But *how* you gather the data matters tremendously for what you can conclude.
+*How* you gather data matters tremendously for what you can conclude.
 
 ### Observational studies: watching without intervening
 
-In an **observational** study, researchers record what happens without actively assigning exposures or treatments. Common types include:
+In an **observational** study, researchers record what happens without assigning treatments. Common types include:
 
 
 #### Cohort Studies
 
-**Cohort studies**, where a group of people linked by a characteristic (e.g., birth year) is followed over time. Researchers compare outcomes between those exposed to some factor and those not exposed.
+In a **cohort study**, a group sharing a characteristic is followed over time, and researchers compare outcomes between those exposed to some factor and those not exposed.
 
-A classic example of a cohort study is the Framingham Heart Study (FHS), which has been described in detail in the *International Journal of Epidemiology*. In 1948 the National Heart Institute recruited a community-based cohort of 5,209 adults aged 30–59 years from Framingham, Massachusetts, to investigate causes of cardiovascular disease (CVD). Two of every three families in the town were randomly sampled and invited; 4,494 (about 69%) agreed to participate, and an additional 715 volunteers joined. This initial **prospective cohort** has been followed every **two to four years** with detailed medical histories, physical examinations, electrocardiograms and laboratory tests. By following participants longitudinally for decades, the FHS identified major risk factors for CVD-such as high blood pressure, cholesterol, and smoking-helping to shape modern cardiovascular prevention guidelines.
+For example, a business school might track a cohort of MBA graduates from the class of 2020, following their career trajectories over 10 years. Researchers could compare salary growth, promotion rates, and job satisfaction between graduates who took on student debt and those who did not. By following the same group over time, the study can reveal long-term patterns---but it cannot prove that debt *caused* any differences, because the two groups may differ in other ways (family wealth, risk tolerance, chosen industry).
 
 
 #### Case-Control Studies
 
-**Case–control studies**, where people with a condition (“cases”) are compared to similar people without it (“controls”) to look for differences in past exposures.
+In a **case–control study**, individuals with a particular outcome (“cases”) are compared to similar individuals without it (“controls”) to look for differences in past exposures.
 
-For example, a German study[^02-1] compared 118 patients with a rare form of eye cancer called uveal melanoma to 475 healthy patients who did not have this eye cancer. The patients' cell phone use was measured using a questionnaire. On average, the eye cancer patients used cell phones more often. The cases were those who had developed uveal melanoma and the controls were those who did not uveal melanoma. The cell phone use was compared between the two groups.
+For example, a bank might compare 200 loans that defaulted (cases) with 800 similar loans that were repaid on time (controls) to investigate whether certain application characteristics---such as debt-to-income ratio or employment length---were more common among defaults.
 
-[^02-1]: Stang, A., Anastassiou, G., Ahrens, W., Bromen, K., Bornfeld, N., & Jöckel, K. H. (2001). The possible role of radio frequency radiation in the development of uveal melanoma. *Epidemiology*, 7-12.
-
-Because participants choose their own behaviors, observational data reflect the real world and are often the only ethical way to study harmful exposures. For example, you can’t ethically assign people to smoke or not smoke, so the long-term effects of smoking are studied by tracking smokers and non-smokers over time.
-
-Observational studies are usually quicker and cheaper than experiments and have high ecological validity (they mirror everyday life). But they have a critical limitation: you can’t be sure whether differences in outcomes are caused by the exposure or by other factors that differ between groups. For example, a highly publicized 1985 study from Johns Hopkins University linked coffee consumption to an increased risk of heart disease, especially for heavy drinkers. The study's findings, published in the *American Journal of Epidemiology*, were later challenged by other research that pointed out the failure to adequately control for the effect of cigarette smoking. Once smoking was controlled for, the link between coffee consumption and increased risk of heart disease was no longer significant.
+Because participants choose their own behaviors, observational data reflect the real world and are often the only practical way to study outcomes that cannot be ethically or feasibly assigned. Observational studies are usually quicker and cheaper than experiments, but they have a critical limitation: you cannot be sure whether differences in outcomes are caused by the factor of interest or by other variables that differ between groups.
 
 ### Experiments: deliberately changing something
 
-As discussed previously, in an **experiment**, researchers assign treatments or interventions to units and observe the effects. Randomization-assigning units by chance-ensures that, on average, the groups are comparable on both observed and unobserved characteristics. The classic experimental design is the completely randomized design: participants are randomly allocated to receive a new drug, a placebo, or no treatment, and outcomes are compared. Experiments are considered the gold standard for establishing causality because randomization eliminates systematic differences between groups.
+As discussed previously, in an **experiment**, researchers assign treatments to units and observe the effects. Randomization ensures that, on average, groups are comparable on both observed and unobserved characteristics. Experiments are the gold standard for establishing causality, but they can be expensive, time-consuming, or impractical.
 
-Experiments also offer a controlled environment, making it easier to isolate the effect of a single factor. However, they can be expensive, time-consuming, or unethical to conduct.
+For example, suppose a company suspects that employees who work remotely are more productive than those in the office. An ideal experiment might randomly assign half the workforce to remote work and the other half to in-office work for five years. But this raises practical problems:
 
-For example, suppose we were interested in the association between eye cancer and smart phone use. Suppose we conduct an experiment, such as the following:
+1.  It may not be **feasible** to force employees into a work arrangement they did not choose, and doing so may cause turnover or resentment that distorts results.
+2.  It is difficult to ensure that employees **comply** with their assignment over a long period---some remote workers may come to the office, and vice versa.
+3.  Five years is a long time to **wait** for an answer, especially in a fast-changing business environment.
 
-1.  Pick half the students from your school at random and tell them to use a smart phone each day for the next 50 years.
-2.  Tell the other half of the student body not to ever use smart phones.
-3.  Fifty years from now, analyze whether cancer was more common for those who used smart phones.
-
-There are obvious difficulties with such an experiment:
-
-1.  It's not **ethical** for a study to expose over a long period of time some of the subjects to something (such as smart phone radiation) that we suspect may be harmful.
-
-2.  It's difficult in practice to make sure that the subjects **behave** as told. How can you monitor them to ensure that they adhere to their treatment assignment over the 50-year experimental period?
-
-3.  Who wants to **wait** 50 years to get an answer?
-
-Thus, an observational study would be preferred over an experiment.
+In cases like this, an observational study---comparing employees who already work remotely to those who already work in the office---is more practical, even though it cannot fully establish causality.
 
 ### Why observational studies can mislead
 
-Observational data are susceptible to **confounding**-a situation where a third factor influences both the exposure and the outcome, creating a spurious association. For example, an observational cohort might find that people who meditate have lower rates of heart disease. But meditators may also exercise more and eat healthier diets, making it unclear whether meditation or lifestyle explains the difference. Similarly, people who choose to take daily vitamins might generally have healthier habits, so observed vitamin benefits may reflect those habits rather than the vitamins themselves.
+Observational data are susceptible to **confounding**---a situation where a third factor influences both the exposure and the outcome, creating a spurious association. For example, a company might observe that employees who use standing desks take fewer sick days. But employees who request standing desks may also be more health-conscious overall, so the benefit might come from their lifestyle rather than the desk itself.
 
-Randomization is the only method that can eliminate potential confounders by balancing both measured and unmeasured factors across treatment groups. In observational research, statistical methods like stratification, regression adjustment and propensity score matching can reduce bias, but they depend on untestable assumptions: all confounders must be measured correctly and modeled properly. Many important confounders may be unknown or infeasible to measure. Even meticulously controlled observational studies cannot remove all confounding. As a result, observational evidence alone “cannot support conclusions of **causation**”.
+Randomization is the only method that can eliminate confounders by balancing both measured and unmeasured factors across groups. In observational research, statistical adjustments (stratification, regression, propensity score matching) can reduce bias, but they depend on the assumption that all important confounders have been measured correctly. Because unmeasured confounders may remain, observational evidence alone cannot support conclusions of **causation**.
 
 Below is a simple simulation illustrating confounding. Shoe size and reading ability appear positively related, but both are driven by age. When age is not controlled, a misleading association emerges.
 
@@ -513,26 +484,26 @@ The scatterplot shows a strong correlation between shoe size and reading, even t
 
 ::: {.callout-note collapse="false" title="Problems"}
 
-1.  A nutrition researcher recruits people who already take daily multivitamins and compares their health outcomes to people who do not.
+1.  A consulting firm finds that companies using agile project management have higher revenue growth than companies using traditional methods.
 
     a)  Is this an observational study or an experiment?
     b)  Name at least two potential confounding variables.
 
-2.  In a randomized trial, half the participants are assigned to eat a Mediterranean diet and half to continue their usual diet. After a year, the first group shows lower cholesterol. Explain why randomization strengthens the causal interpretation.
+2.  In a randomized trial, half of a retailer's stores are assigned to use a new checkout system and the other half keep the current system. After six months, the new system shows shorter wait times. Explain why randomization strengthens the causal interpretation.
 
-3.  A cohort study finds that people who bike to work have lower rates of depression than those who drive. Suggest two reasons why this association may not reflect a causal effect of biking.
+3.  A study finds that employees who participate in company wellness programs have lower absenteeism than those who do not. Suggest two reasons why this association may not reflect a causal effect of the program.
 
-4.  Describe a research question that would be unethical or impractical to answer via experiment but could be studied observationally. Explain why.
+4.  Describe a research question that would be impractical to answer via experiment but could be studied observationally. Explain why.
 :::
 
 ::: {.callout-tip collapse="true" title="Solutions"}
-1.  a)This is an **observational study** because participants choose whether or not to take multivitamins. b) Potential confounders include diet quality, exercise habits, socioeconomic status, access to healthcare, smoking status and other health behaviors.
+1.  a) This is an **observational study** because companies chose their own management approach---no one assigned it. b) Potential confounders include company size, industry, funding level, employee talent, and leadership quality.
 
-2.  Randomization assigns diets by chance, so, on average, both known and unknown factors (age, lifestyle, genetics) are balanced across the groups. Therefore, differences in cholesterol are likely due to the diet rather than pre-existing differences.
+2.  Randomization assigns the checkout system by chance, so, on average, both known and unknown factors (store size, location, customer demographics) are balanced across groups. Therefore, differences in wait times are likely due to the system rather than pre-existing differences.
 
-3.  People who bike may have higher baseline fitness and better mental health; they might live in neighborhoods with better infrastructure or community support; they may also have lifestyles that promote well-being (e.g., more time outdoors). Any of these confounders could explain the observed association.
+3.  Employees who join wellness programs may already be healthier or more motivated; they may also hold positions with more schedule flexibility. These confounders could explain the lower absenteeism rather than the program itself.
 
-4.  Studying the long-term effects of smoking is unethical to do experimentally, because you can’t randomly assign people to smoke. Instead, researchers observe smokers and non-smokers and compare outcomes.
+4.  Studying whether long commute times reduce employee retention would be impractical to test experimentally---you cannot randomly assign commute distances. Instead, researchers can observe employees with different commute lengths and compare turnover rates over time.
 :::
 
 ## Sources of Bias
@@ -540,11 +511,11 @@ The scatterplot shows a strong correlation between shoe size and reading, even t
 > "Normally if given a choice between doing something and nothing, I'd choose to do nothing. But I would do something if it helps someone do nothing. I'd work all night if it meant nothing got done." - Ron Swanson
 
 
-When we talk about bias in statistics, we mean a **systematic error** built into the way we select or measure our data. Bias is different from random sampling error. Sampling error comes from the natural variability you get when you observe only part of the population and tends to shrink as sample sizes grow. Bias, by contrast, does not go away with bigger samples; a flawed design simply produces more confident wrong answers. That makes it important to understand the different ways bias sneaks into our studies.
+**Bias** is a **systematic error** built into the way we select or measure data. Unlike sampling error---which shrinks as the sample grows---bias does not go away with bigger samples. A flawed design simply produces more confident wrong answers.
 
 ### How bias differs from sampling error
 
-Whenever we select a sample, the numbers we compute (like the mean or proportion) will vary from one sample to the next. This variability is called **sampling error**. If we repeated our survey many times with different random samples, the average of those sample statistics would be the true population value, and the spread among them would reflect sampling error. Increasing the sample size reduces sampling error, but it *does not* correct for systematic flaws in how the sample was chosen. When the method of collecting or measuring data systematically favors some outcomes over others, we call it **bias**. A biased sample can be huge and still be wrong because its error is baked into the design.
+**Sampling error** is the natural variability in statistics from one sample to the next. Larger samples reduce it. **Bias**, by contrast, is a consistent push in one direction caused by how data are collected or measured. A biased sample can be huge and still be wrong because the error is baked into the design.
 
 To illustrate the difference, imagine a population with a true average income of \$8 (in arbitrary units), made up of 70% low earners (income of 5) and 30% high earners (income of 15). Below we simulate two ways of sampling from this population: a fair simple random sample and a biased sample that over-selects high earners (80% high, 20% low). As the sample size grows, the random sample mean settles near the true average, while the biased sample mean stays high. This shows that increasing the sample size reduces random error but does not fix bias.
 
@@ -612,7 +583,7 @@ Bias can enter at many points in the data-collection process. Here are some of t
 
 #### Coverage (undercoverage) bias
 
-A **coverage bias** occurs when some members of the population are not included in the sampling frame. The Literary Digest’s famous 1936 presidential poll relied on telephone directories and car registration lists, thereby missing less affluent voters who tended to support Franklin Roosevelt. Because those voters were excluded, the sample favored wealthier respondents and overpredicted Alfred Landon’s support.
+**Coverage bias** occurs when some members of the population are missing from the sampling frame. The Literary Digest’s famous 1936 presidential poll relied on telephone directories and car registration lists, thereby missing less affluent voters who tended to support Franklin Roosevelt. The sample favored wealthier respondents and badly mispredicted the election.
 
 ::: {style="text-align: center;"}
 ![](images/literary_digest){width="4in"}
@@ -620,11 +591,11 @@ A **coverage bias** occurs when some members of the population are not included 
 
 #### Nonresponse bias 
 
-A **nonresponse bias** arises when selected individuals choose not to participate and the responders differ systematically from nonresponders. In the same 1936 survey only 25% of those sampled returned the mail-in ballot. Landon supporters were more likely to return the survey, so the results overestimated his popularity.
+**Nonresponse bias** arises when selected individuals choose not to participate and responders differ systematically from nonresponders. In the same 1936 survey only 25% of those sampled returned the mail-in ballot. Landon supporters were more likely to return the survey, so the results overestimated his popularity.
 
 #### Voluntary response bias 
 
-When people opt into a survey on their own-like call-in radio polls about controversial topics-the sample disproportionately includes individuals with strong opinions. This **voluntary response bias** can produce extreme results because moderate voices remain silent.
+When people opt into a survey on their own—like online product reviews or call-in polls—the sample disproportionately includes those with strong opinions. **Voluntary response bias** produces extreme results because moderate voices remain silent.
 
 
 #### Convenience sampling bias
@@ -634,7 +605,7 @@ A **convenience sample** chooses whoever is easiest to reach. If you stand outsi
 
 #### Response (measurement) bias
 
-Even if we select the right people, the way we ask questions or record data can introduce **response bias**. Response bias occurs when the measurement process influences the answer: leading questions or unbalanced answer choices can nudge respondents toward particular responses. **Social desirability bias** occurs when people underreport socially undesirable behaviors or overreport virtuous ones.
+**Response bias** occurs when the measurement process influences the answer: leading questions, unbalanced scales, or social pressure can nudge respondents. **Social desirability bias** occurs when people overreport virtuous behaviors or underreport undesirable ones.
 
 #### Survivorship bias
 
@@ -644,20 +615,22 @@ When we only observe “survivors” and ignore those that dropped out or failed
 ![](images/ww2_bomber.png){width="2in"}
 :::
 
-The most famous example of this is the WWII bomber problem. During WWII, analysts tallied bullet holes on returning Allied bombers and saw clusters on wings and fuselage, with relatively few in engines and cockpit. The intuitive fix was to add armor where the holes were densest. Statistician Abraham Wald pointed out the trap: these data come only from planes that survived. Holes on the survivors mark places a plane can be hit and still make it home. The *missing* planes-those that didn’t return-are precisely the ones likely hit in the “clean” areas (e.g., engines). So Wald recommended reinforcing the *areas with the fewest holes* on the survivors, not the most. That’s survivorship bias: drawing conclusions from only the observed “winners” and ignoring the unseen “failures.”
+The classic example is the WWII bomber problem. Analysts tallied bullet holes on returning bombers and saw clusters on wings and fuselage, with few near engines. The intuitive fix was to armor the damaged areas. Statistician Abraham Wald pointed out the trap: these data come only from planes that *survived*. The missing planes were likely hit in the areas with no holes. Wald recommended reinforcing the areas with the *fewest* holes on survivors.
+
+The same logic applies in business. Studying only successful startups to find the "keys to success" ignores all the companies that did the same things and failed.
 
 
 #### Recall bias
 
-In retrospective studies, participants may not remember past events accurately. People who have developed an illness might recall exposures differently than healthy controls, leading to systematic differences.
+In retrospective studies, participants may not remember past events accurately. For example, customers who had a negative experience may recall details differently than satisfied customers, leading to systematic differences.
 
 #### Interviewer bias
 
 The interviewer’s tone, appearance or expectations can subtly influence responses. Neutral wording and training can reduce this effect.
 
-#### Healthy-user bias and attrition bias 
+#### Attrition bias 
 
-People who choose to participate in certain programs or who remain in a study for its duration often differ from those who do not, leading to biased estimates.
+People who remain in a study for its full duration often differ from those who drop out. In a year-long customer loyalty study, customers who leave early may be the least satisfied, so the remaining sample paints an overly positive picture.
 
 Each of these biases stems from the way participants are chosen or how data are measured; they cannot be “averaged out” by larger samples.
 
