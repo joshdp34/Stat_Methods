@@ -1,11 +1,11 @@
 # Introduction {.unnumbered}
 
-These are the lecture notes for STA 2381 - Introductory Statistical Methods.
+These are the lecture notes for STA 5300 - Statistical Methods.
 
 **Prerequisites:** None 
     
 #### Course Description:
 
-Parametric statistical methods. Topics range from descriptive statistics through regression and one-way analysis of variance. Applications are typically from biology and medicine. Computer data analysis is required.
+Introduction to descriptive and inferential statistics. Topics may be selected from the following: descriptive statistics and graphs, probability, regression, correlation, tests of hypotheses, interval estimation, measurement, reliability, experimental design, analysis of variance, nonparametric methods, and multivariate methods.
 
 

@@ -287,6 +287,29 @@ Clarity about this distinction matters. Suppose your target population is *“al
 
 Being explicit about the target population, the accessible population, and the sampling frame forces you to confront these limitations up front. It also helps you interpret results honestly: conclusions drawn from the accessible population should not automatically be generalized beyond it without careful justification. In statistics, knowing *who* your data represent is just as important as knowing *what* the data say.
 
+::: {.example title="Example 1.1"}
+
+**A hospital studying patient recovery times after knee surgery.**
+
+- **Target population:** All adults in the United States who undergo knee replacement surgery.
+- **Accessible population:** Adults who undergo knee replacement surgery at three partnering hospitals in Central Texas during the current calendar year.
+- **Sampling frame:** The electronic medical records system at those three hospitals, which lists every knee replacement patient with a valid follow-up address.
+
+Notice the gap: the target population is national, but the accessible population is limited to a specific region and time window. Patients at these Texas hospitals may differ from the national population in age distribution, insurance coverage, or access to physical therapy—all of which could affect recovery times. Results from this study should be generalized beyond Central Texas only with caution.
+
+:::
+
+::: {.example title="Example 1.2"}
+
+**A university investigating student satisfaction with campus dining.**
+
+- **Target population:** All students enrolled at the university during the current semester.
+- **Accessible population:** Students who have an active university email account and have opted in to receive survey invitations.
+- **Sampling frame:** The registrar's email list of currently enrolled students who have not opted out of institutional surveys.
+
+Here the sampling frame excludes students who opted out of surveys—and those students may have systematically different opinions (for example, they may be less engaged with campus life or more frustrated with institutional communications). The accessible population also misses any students with outdated or inactive email accounts. These gaps mean the survey results may overrepresent students who are more connected to campus and willing to share feedback.
+
+:::
 
 
 ### What counts as a sample?
@@ -334,77 +357,104 @@ A major goal of statistics is to **measure and communicate this uncertainty**. L
 
 ### Why sampling works (and when it doesn’t)
 
-Sampling works when your sample is representative of the population and your measurement is trustworthy. It struggles when parts of the population are systematically excluded (coverage problems), when participation differs by outcome (nonresponse), or when the way you select units is related to the outcome (selection effects). We’ll study these threats-and how to reduce them-next chapter.
+Sampling works when your sample is representative of the population and your measurement is trustworthy. It struggles when parts of the population are systematically excluded (coverage problems), when participation differs by outcome (nonresponse), or when the way you select units is related to the outcome (selection effects). We’ll study these threats, and how to reduce them, next chapter.
 
 
+### Illustration: drawing a random sample from a sampling frame in R
 
-### A quick illustration: samples differ, the goal doesn’t
+To make the ideas of sampling frames and random samples concrete, let’s walk through a simple example in R.
 
-The illustration below shows a fundamental idea in statistics: **different samples from the same population give different answers, but they are all trying to estimate the same underlying truth**.
-
-In this simulation, we imagine a population where the true mean is known to be 10 and the standard deviation is 2. From this population, we repeatedly take random samples and compute the sample mean each time. We do this for several different sample sizes, and then look at how the sample means behave.
-
-Each histogram shows the distribution of sample means from 1,000 different samples of the same size. The dashed vertical line marks the true population mean of 10.
-
+Imagine a small university department has 20 students. We have a **sampling frame**---a complete list of their names---and we want to randomly select 5 students for a survey.
 
 ```{r}
+#| echo: true
 
-#| echo: false
+# Our sampling frame: a list of 20 students
+sampling_frame <- c(
+  "Alex",    "Brianna", "Carlos",  "Diana",   "Ethan",
+  "Fatima",  "George",  "Hannah",  "Isaac",   "Julia",
+  "Kevin",   "Lena",    "Marcus",  "Nora",    "Oscar",
+  "Priya",   "Quinn",   "Rosa",    "Sam",     "Tina"
+)
 
-#| message: false
-
-#| warning: false
-
-set.seed(2300)
-
-# Imagine a population with mean = 10 and sd = 2
-
-pop_mean <- 10
-
-pop_sd   <- 2
-
-# Draw many samples of different sizes and compute their means
-
-sizes <- c(20, 50, 200)
-
-means_list <- lapply(sizes, function(n) {
-
-  replicate(1000, mean(rnorm(n, pop_mean, pop_sd)))
-
-})
-
-# Plot histograms of sample means
-
-op <- par(mfrow = c(1,3), mar = c(4,4,2,1))
-
-for (j in seq_along(sizes)) {
-
-  hist(means_list[[j]], main = paste0("n = ", sizes[j]),
-
-       xlab = "Sample mean", breaks = 20, xlim = c(8.75, 11.75))
-
-  abline(v = pop_mean, lty = 2)
-
-}
-
-par(op)
-
+# Draw a random sample of 5 students
+sample(sampling_frame, size = 5)
 ```
 
+Run this code yourself and you will get a different set of 5 names. Run it again and you will get yet another set. This is the randomness at work---each time R draws a sample, it uses a different sequence of random numbers.[^01-2]
+
+[^01-2]: Computers use **pseudorandom number generators (PRNGs)**; deterministic algorithms that produce sequences of numbers that *look* random but are entirely determined by a starting value (the seed). Given the same seed, you get the exact same sequence every time. That's why `set.seed()` works. True randomness requires a physical source — atmospheric noise, radioactive decay, thermal fluctuations. What R (and most software) does instead is apply a mathematical formula that scrambles each number into the next one so thoroughly that the output passes every statistical test for randomness, even though it's completely predictable if you know the seed. The practical takeaway is: pseudorandom numbers are "random enough" for simulation, sampling, and inference. The distinction only matters in cryptography or physics simulations where predictability is a security or accuracy concern. 
 
 
 
-When the sample size is small (for example, (n = 20)), the sample means vary noticeably from one sample to another. Some are below 10, some are above, and a few are fairly far away. This variability is not a flaw in the method-it is the unavoidable consequence of working with limited data.
+#### Reproducibility with `set.seed()`
 
-As the sample size increases (to (n = 50) and then (n = 200)), two things become apparent:
+In research and coursework, we often need results to be **reproducible**---meaning someone else (or your future self) can run the same code and get the same output. R’s `set.seed()` function makes this possible. It locks the random number generator to a specific starting point so that the "random" draws follow the same sequence every time.
 
-1. The sample means continue to center around the true mean of 10.
-2. The spread of the sample means shrinks. Larger samples produce more stable, less “wiggly” estimates.
+```{r}
+#| echo: true
 
-This shrinking spread reflects a reduction in **sampling error**. With more data, random fluctuations tend to cancel out, and the statistic becomes a more precise estimate of the parameter. Importantly, the target never changes: all of these samples-large or small-are aiming to learn about the same population mean.
+set.seed(1004)
+sample(sampling_frame, size = 5)
+```
 
-This example captures the intuition behind statistical inference. We accept that individual samples differ, but we rely on probability and repeated-sampling logic to understand *how much* they differ and *how close* our estimates are likely to be to the truth. Later chapters will formalize this intuition using sampling distributions, standard errors, and confidence intervals, but the core idea is already visible here: **uncertainty decreases with sample size, even when the goal stays the same**.
+No matter how many times you run the code above, you will always get the same five names. Change the seed number and you will get a different (but still reproducible) sample:
 
+```{r}
+#| echo: true
+
+set.seed(42)
+sample(sampling_frame, size = 5)
+```
+
+Think of `set.seed()` as bookmarking a page in a very long book of random numbers. The draws are still "random" in the sense that they have no pattern you could predict, but the bookmark tells R exactly where to start reading. Without `set.seed()`, R picks a different starting place every time.
+
+#### Different samples, same goal
+
+The key insight is that **every random sample is different, but they are all trying to estimate the same population truth**. Let’s see this in action.
+
+Suppose the 20 students in our sampling frame have the following GPAs (these are the "population" for this illustration):
+
+```{r}
+#| echo: true
+
+gpa <- c(3.2, 3.8, 2.9, 3.5, 3.1, 3.9, 2.7, 3.4, 3.6, 3.0,
+         3.3, 3.7, 2.8, 3.5, 3.2, 3.8, 3.1, 3.4, 2.6, 3.6)
+
+names(gpa) <- sampling_frame
+
+# The true population mean GPA
+mean(gpa)
+```
+
+Now let’s draw 1,000 different random samples of size 5 and compute the sample mean GPA each time:
+
+```{r}
+#| echo: true
+
+set.seed(1004)
+
+sample_means <- replicate(1000, {
+  chosen <- sample(sampling_frame, size = 5)
+  mean(gpa[chosen])
+})
+```
+
+The figure below shows a histogram of these 1,000 sample means. The dashed line marks the true population mean.
+
+```{r}
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3.5
+
+hist(sample_means, breaks = 20,
+     main = "Distribution of 1,000 Sample Means (n = 5)",
+     xlab = "Sample Mean GPA",
+     col = "steelblue", border = "white")
+abline(v = mean(gpa), lty = 2, lwd = 2)
+```
+
+Notice that the individual sample means vary---some are above the true mean, some below---but they **center around the true population mean**. No single sample is guaranteed to be exactly right, but the process of random sampling is unbiased: on average, it hits the target. This is precisely why random sampling works, and it is the foundation for the inferential tools we will develop later in the course.
 
 
 ### Recap
@@ -590,68 +640,136 @@ Because date/time variables are flexible, it is essential to be explicit about h
 Being deliberate about identifiers and date/time variables helps ensure that each column is used appropriately. It prevents nonsensical calculations, clarifies analytical intent, and keeps the focus on variables that genuinely carry information about the phenomenon under study.
 
 
+### Working with data types in R
 
-### Working in JMP
+R has its own way of representing the variable types we have discussed. Understanding how R stores and handles different kinds of data is important because it affects which functions work, what summaries you get, and whether your analysis is valid.
 
-JMP keeps two concepts straight for each column:
+#### Numeric vectors
 
-- **Data Type** (what the values *are*): **Numeric**, **Character**, or **Date/Time**.
+Quantitative variables---both discrete and continuous---are stored as **numeric** vectors. R does not distinguish between discrete and continuous; both are just numbers.
 
-- **Modeling Type** (how you plan to *analyze* them): **Continuous**, **Nominal**, or **Ordinal**.
+```{r}
+#| echo: true
 
-Double-click a column header (or right-click → *Column Info*) to set these. Typical mappings:
+# Continuous: heights in inches
+heights <- c(64.2, 70.1, 68.5, 72.0, 65.8)
+heights
 
-- Character + Nominal → categorical labels (e.g., “TX”, “CA”).
+# Discrete: number of siblings
+siblings <- c(2, 0, 1, 3, 1)
+siblings
 
-- Numeric + Continuous → quantitative measures (e.g., weight, time).
+class(heights)
+class(siblings)
+```
 
-- Numeric + Nominal → numeric codes that are actually categories (e.g., 0/1 flags, ZIP codes, jersey numbers).
+Both report the same class. R treats them identically---it is up to you as the analyst to remember which represent counts and which represent measurements.
 
-- Numeric + Ordinal → ordered categories encoded as 1–5 (Likert items).
+#### Character vectors
 
-If a graph or analysis looks odd in JMP, check these settings first-they control which menu options and displays you’ll see in *Graph Builder* and *Analyze*.
+Nominal categorical variables are often stored as **character** vectors---simple text labels.
 
-<!-- ### A quick illustration (discrete vs. continuous) -->
+```{r}
+#| echo: true
 
-<!-- The displays below look different because one variable is discrete (counts) and the other is continuous (measurements). -->
+eye_color <- c("Brown", "Blue", "Green", "Brown", "Blue")
+class(eye_color)
+```
 
-<!-- ```{r} -->
+Character vectors are fine for storage, but R does not know these are categories. If you try to compute a summary, R cannot do much with plain text:
 
-<!-- #| echo: false -->
+```{r}
+#| echo: true
 
-<!-- #| message: false -->
+summary(eye_color)
+```
 
-<!-- #| warning: false -->
+To unlock categorical summaries, we need **factors**.
 
-<!-- set.seed(2381) -->
+#### Factors (categorical variables)
 
-<!-- n <- 400 -->
+A **factor** is R's way of representing a categorical variable. Converting a character vector to a factor tells R that the values are categories, not arbitrary text.
 
-<!-- visits <- rpois(n, lambda = 2)          # discrete: ER visits last year -->
+```{r}
+#| echo: true
 
-<!-- bp     <- rnorm(n, mean = 120, sd = 14) # continuous: systolic BP (mmHg) -->
+eye_color_f <- factor(eye_color)
+eye_color_f
+summary(eye_color_f)
+```
 
-<!-- op <- par(mfrow = c(1,2), mar = c(4,4,2,1)) -->
+Now `summary()` returns counts for each category. Behind the scenes, R stores factors as integers with labels (called **levels**), which is efficient and enables many statistical functions.
 
-<!-- barplot(table(visits), xlab = "ER visits (count)", ylab = "Frequency", -->
+#### Ordered factors (ordinal variables)
 
-<!--         main = "Discrete (counts)") -->
+For ordinal variables, use `factor()` with `ordered = TRUE` and specify the level order. This tells R that the categories have a meaningful ranking.
 
-<!-- hist(bp, breaks = 20, xlab = "Systolic BP (mmHg)", main = "Continuous (measurement)") -->
+```{r}
+#| echo: true
 
-<!-- par(op) -->
+satisfaction <- c("Neutral", "Agree", "Strongly Agree", "Disagree", "Agree")
 
-<!-- ``` -->
+satisfaction_f <- factor(satisfaction,
+                         levels = c("Strongly Disagree", "Disagree",
+                                    "Neutral", "Agree", "Strongly Agree"),
+                         ordered = TRUE)
+satisfaction_f
+```
 
-<!-- If you tried to “average” home states, you’d get nonsense; if you treated blood pressure as a category, you’d throw away useful information. Getting types right keeps your analysis honest and effective. -->
+The `<` symbols in the output confirm that R recognizes the ordering. This matters for certain analyses and visualizations that respect category order.
 
-<!-- ### Common pitfalls (and quick fixes) -->
+#### Logical vectors (binary variables)
 
-<!-- * Digits don’t guarantee “quantitative.” ZIP codes, part numbers, and jersey numbers are **identifiers**; set them to **Character + Nominal** in JMP. -->
+Binary variables with two outcomes are naturally represented as **logical** vectors (`TRUE`/`FALSE`).
 
-<!-- * Collapsing a continuous variable into categories (“high/medium/low”) can simplify communication but often loses power. Keep the original too. -->
+```{r}
+#| echo: true
 
-<!-- * Treating an ordinal scale as if equal steps are guaranteed can be misleading. Consider medians or nonparametric tools-or justify the approximation. -->
+passed_inspection <- c(TRUE, TRUE, FALSE, TRUE, FALSE)
+class(passed_inspection)
+summary(passed_inspection)
+```
+
+A useful property of logical vectors is that R treats `TRUE` as 1 and `FALSE` as 0 in arithmetic, so you can quickly compute counts and proportions:
+
+```{r}
+#| echo: true
+
+sum(passed_inspection)
+mean(passed_inspection)
+```
+
+#### Why getting the type right matters
+
+Storing a variable with the wrong type can lead to misleading results. Consider ZIP codes: they look like numbers but are really nominal labels.
+
+```{r}
+#| echo: true
+
+zip_codes <- c(76706, 76710, 76708, 76706, 76710)
+
+# Wrong: treating ZIP codes as numeric
+mean(zip_codes)
+
+# Right: treating ZIP codes as a factor
+zip_codes_f <- factor(zip_codes)
+summary(zip_codes_f)
+```
+
+The mean of ZIP codes is nonsense---"average ZIP code" has no meaning. Converting to a factor gives us a frequency table, which is the appropriate summary for a nominal variable. The same caution applies to jersey numbers, ID numbers, and any other digits that serve as labels rather than quantities.
+
+#### Quick reference
+
+| **Variable type**       | **R representation**          | **Example**                                    |
+|-------------------------|-------------------------------|-------------------------------------------------|
+| Quantitative (continuous or discrete) | `numeric`        | `c(3.2, 2.8, 3.5)`                            |
+| Categorical (nominal)   | `factor`                      | `factor(c("A", "B", "A"))`                    |
+| Categorical (ordinal)   | `ordered factor`              | `factor(x, levels = ..., ordered = TRUE)`      |
+| Binary                  | `logical`                     | `c(TRUE, FALSE, TRUE)`                         |
+| Identifier              | `character` (or `factor`)     | `c("ID001", "ID002", "ID003")`                 |
+
+
+
 
 ### Recap
 
@@ -660,7 +778,6 @@ If a graph or analysis looks odd in JMP, check these settings first-they control
 | **Categorical variable**  | Places a case into a group/label; arithmetic on labels is not meaningful.                            |
 | **Nominal**               | Categorical with no natural order.                                                                   |
 | **Ordinal**               | Categorical with a natural order but uneven/unknown spacing.                                         |
-
 | **Binary**                | A categorical variable with exactly two categories.                                                  |
 | **Quantitative variable** | Numeric values where arithmetic is meaningful.                                                       |
 | **Discrete**              | Quantitative counts that change in whole steps.                                                      |
@@ -737,9 +854,9 @@ These three pieces must align. A mismatch—such as asking a causal question wit
 
 Two broad families of study designs appear throughout statistics:
 
-* An **observational study** records what naturally occurs, without assigning treatments or interventions. These studies are common and often easier to carry out. They are well suited for describing patterns and associations, but they are vulnerable to **confounding**, where other variables are related to both the explanatory variable and the outcome.
+* An **observational study** records what naturally occurs, without assigning treatments or interventions. These studies are common and often easier to carry out. They are well suited for describing patterns and associations, but they are vulnerable to **confounding**, where other variables are related to both the explanatory variable and the outcome. For example, an observational study might find that students who drink more coffee earn higher GPAs, but coffee drinkers may also be spending more hours studying. In that case, study time is a confounding variable: it is associated with both coffee consumption and GPA, making it unclear whether coffee itself has any effect.
 
-* An **experiment** actively assigns a **treatment** to units and compares outcomes across groups. When well designed—with randomization, control, and careful implementation—experiments allow for stronger causal conclusions because they help isolate the effect of the treatment from other factors.
+* An **experiment** actively assigns a **treatment** to units and compares outcomes across groups. When well designed - with randomization, control, and careful implementation - experiments allow for stronger causal conclusions because they help isolate the effect of the treatment from other factors.
 
 The choice between these designs depends on the research question, ethical and practical constraints, and what kind of claim you ultimately want to make.
 
@@ -758,16 +875,16 @@ While real research is rarely linear, the following workflow provides a practica
    Aim for reliable measurement, consistent procedures, and thorough documentation. Poor data quality cannot be fixed by clever analysis.
 
 4. **Explore first.**
-   Use **exploratory data analysis (EDA)**—graphs, tables, and summary statistics—to understand the data’s structure, detect errors or anomalies, and build intuition before formal modeling.
+   Use **exploratory data analysis (EDA)** - graphs, tables, and summary statistics - to understand the data’s structure, detect errors or anomalies, and build intuition before formal modeling.
 
 5. **Model and infer.**
    Select statistical methods that match the question and the data type, whether that involves comparing groups, studying relationships, or making predictions.
 
 6. **Quantify uncertainty.**
-   Report estimates along with measures of uncertainty, such as confidence intervals and (when appropriate) p-values. Always distinguish **statistical significance** from **practical significance**. These tools will be developed in Chapters 9 and 10.
+   Report estimates along with measures of uncertainty, such as confidence intervals and (when appropriate) p-values. Always distinguish **statistical significance** from **practical significance**. These tools will be developed in later chapters.
 
 7. **Decide and communicate.**
-   Interpret results in context. Explain what the findings mean, what they do not imply, and what actions—if any—are justified based on the evidence.
+   Interpret results in context. Explain what the findings mean, what they do not imply, and what actions (if any) are justified based on the evidence.
 
 8. **Make it reproducible.**
    Ensure that another person could follow your steps and reproduce your results from the same data. Reproducibility is a cornerstone of trustworthy science.
@@ -775,19 +892,6 @@ While real research is rarely linear, the following workflow provides a practica
 In practice, this process is rarely a straight line. Insights from exploratory analysis often send you back to refine the research question or adjust the design. That looping is not a failure—it is a sign of careful, thoughtful science guided by statistical reasoning.
 
 
-### Working in JMP
-
-JMP is built for this process:
-
-* **Document the plan and steps.** Use **File → New → Journal** to create a running research notebook. Paste screenshots, notes, and output as you go.
-
-* **Save scripts to reproduce output.** In most reports, click the red triangle ► **Save Script → To Data Table** (or **To Journal**). This stores a runnable recipe with the data.
-
-* **Explore first.** Start with **Graph → Graph Builder** and **Analyze → Distribution** to profile variables and check data quality.
-
-* **Fit models with assumptions in view.** Use **Analyze → Fit Y by X** for two-variable comparisons and **Analyze → Fit Model** for multiple predictors. Residual and diagnostic tools are right there in the platform menus.
-
-* **Share and rerun.** Bundle data, scripts, and notes with **Projects** or send a Journal so collaborators can reproduce your analysis.
 
 ### Recap
 
