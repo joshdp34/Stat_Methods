@@ -5,7 +5,7 @@ project:
 
 book:
   title: |
-    STA 2381 Introductory Statistical Methods
+    STA 5300 Statistical Methods
   sidebar:
     style: "docked"
     search: true
