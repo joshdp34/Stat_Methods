@@ -38,8 +38,8 @@ library(ggplot2)
 # Simulate 30 survey responses
 symptom <- sample(c("Headache", "Back pain", "Fatigue", "Nausea"), size = 30,
                    replace = TRUE, prob = c(0.35, 0.25, 0.30, 0.10))
-symptom_tbl <- tibble(response = symptom) %>%
-  count(response, name = "frequency") %>%
+symptom_tbl <- tibble(response = symptom) |>
+  count(response, name = "frequency") |>
   mutate(relative_frequency = frequency / sum(frequency))
 
 # Print the table
@@ -60,11 +60,6 @@ The table lists the four categories in alphabetical order with their counts and 
 
 ::: {.callout-note collapse="false" title="Pareto charts"}
 Sometimes you want to highlight the few categories that account for most of the observations. A **Pareto chart** is a bar chart arranged in descending order of frequency and often paired with a cumulative percentage line. It helps you identify the “vital few and trivial many” in quality control and business applications. Pareto charts are useful when there are many categories and you want to focus attention on the most common causes or responses.
-:::
-
-::: {.callout-note collapse="false"}
-## Tip:
-In JMP you can create a frequency table by selecting **Analyze → Distribution**, assigning your categorical variable to the X role, and examining the resulting counts. To add relative frequencies, use the red triangle menu (▸) to choose **Display Options → Show Percent**. JMP’s Graph Builder will automatically construct a bar chart when you drag a categorical variable to the X‑axis and the count statistic to the Y‑axis.
 :::
 
 
@@ -95,8 +90,8 @@ age_group <- sample(c("Under 30", "30–50", "Over 50"), size = 30,
                      replace = TRUE, prob = c(0.3, 0.5, 0.2))
 survey_data <- tibble(symptom = symptom, age_group = age_group)
 
-two_way <- survey_data %>%
-  count(age_group, symptom) %>%
+two_way <- survey_data |>
+  count(age_group, symptom) |>
   tidyr::pivot_wider(names_from = symptom, values_from = n, values_fill = 0)
 
 two_way|> kableExtra::kable()
@@ -112,13 +107,93 @@ Because categorical variables can have different numbers of levels and sample si
 
 When displaying percentages, make sure they add to 100%. In a pie chart (a circular graph we’ll describe in the next section), each slice represents a category’s percentage of the whole. Pie charts are useful for showing how the total is divided among categories, but they become cluttered with too many slices. Bar charts are more flexible: you can reorder the bars, show counts or percentages, and compare multiple groups using side‑by‑side or stacked bars.
 
-### Working in JMP
 
-In JMP, tables and graphs for categorical variables are straightforward:
 
-* To create a frequency table, go to **Analyze → Distribution**, assign your categorical variable to **X**, and click **OK**. The report shows counts and percentages; use the red triangle (▸) menu to toggle percentages, counts, or both.
-* For two categorical variables, use **Analyze → Fit Y by X** and assign one variable to Y and the other to X. Choose **Contingency Table** from the platform to see the two‑way counts and associated statistics.
-* To visualize categorical distributions, open **Graph Builder**, drag the categorical variable to the X‑axis, and drop the **N** summary statistic onto the Y‑axis. You can change the chart type to “Bar” or “Pie.” Dragging a second categorical variable onto the **Group** drop zone will create clustered or stacked bars.
+### Building frequency tables in R
+
+The tidyverse makes it straightforward to build the tables we have discussed. We will use a small example dataset throughout: suppose we survey 50 customers about their preferred payment method and their membership tier.
+
+```{r}
+#| echo: true
+#| message: false
+
+library(tidyverse)
+
+customers <- tibble(
+  payment = c("Credit", "Credit", "Cash", "Digital Wallet", "Debit",
+              "Digital Wallet", "Debit", "Credit", "Debit", "Debit",
+              "Credit", "Credit", "Credit", "Credit", "Cash",
+              "Credit", "Credit", "Digital Wallet", "Digital Wallet", "Credit",
+              "Credit", "Cash", "Digital Wallet", "Credit", "Debit",
+              "Digital Wallet", "Debit", "Credit", "Digital Wallet", "Credit",
+              "Credit", "Debit", "Digital Wallet", "Credit", "Cash",
+              "Debit", "Cash", "Credit", "Credit", "Credit",
+              "Credit", "Credit", "Credit", "Digital Wallet", "Cash",
+              "Digital Wallet", "Cash", "Cash", "Credit", "Credit"),
+  tier = c("Basic", "Basic", "Premium", "Basic", "Premium",
+           "Basic", "Premium", "Basic", "Basic", "Basic",
+           "Premium", "Premium", "Premium", "Basic", "Basic",
+           "Basic", "Basic", "Basic", "Premium", "Basic",
+           "Basic", "Premium", "Basic", "Premium", "Premium",
+           "Basic", "Basic", "Premium", "Basic", "Basic",
+           "Basic", "Premium", "Premium", "Premium", "Basic",
+           "Basic", "Premium", "Basic", "Basic", "Basic",
+           "Premium", "Premium", "Premium", "Premium", "Premium",
+           "Basic", "Basic", "Basic", "Basic", "Basic")
+)
+```
+
+#### Frequency table
+
+Use `count()` to tally observations by category:
+
+```{r}
+#| echo: true
+
+customers |>
+  count(payment)
+```
+
+#### Relative frequency table
+
+Add a proportion column with `mutate()`:
+
+```{r}
+#| echo: true
+
+customers |>
+  count(payment) |>
+  mutate(relative_freq = n / sum(n))
+```
+
+The relative frequencies sum to 1. Multiply by 100 if you prefer percentages.
+
+#### Contingency (two-way) table
+
+To cross-tabulate two categorical variables, count every combination and pivot wider:
+
+```{r}
+#| echo: true
+
+customers |>
+  count(tier, payment) |>
+  pivot_wider(names_from = payment, values_from = n, values_fill = 0)
+```
+
+Each cell shows how many customers fall into that combination of tier and payment method. To convert to row percentages (the distribution of payment methods *within* each tier), group by the row variable before computing proportions:
+
+```{r}
+#| echo: true
+
+customers |>
+  count(tier, payment) |>
+  group_by(tier) |>
+  mutate(pct = n / sum(n)) |>
+  ungroup()
+```
+
+These are the same operations behind the tables in Examples 3.1 and 3.2---just with the code visible so you can adapt them to your own data.
+
 
 ### Recap
 
@@ -188,19 +263,27 @@ Suppose a hospital records the blood type (A, B, AB or O) of 200 randomly chosen
 #| echo: false
 #| message: false
 #| warning: false
-set.seed(2024)
+set.seed(1004)
 library(tidyverse)
 # simulate blood type counts
 types <- c("O", "A", "B", "AB")
 donors <- sample(types, size = 200, replace = TRUE, prob = c(0.45, 0.35, 0.15, 0.05))
-blood_tbl <- tibble(type = donors) %>% count(type, name = "count") %>% mutate(prop = count/sum(count))
+blood_tbl <- tibble(type = donors) |> count(type, name = "count") |> mutate(prop = count/sum(count))
 # display table
 blood_tbl|> kableExtra::kable()
-# bar chart
-ggplot(blood_tbl, aes(x = reorder(type, -count), y = count)) +
+
+```
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
+library(tidyverse)
+# simulate blood type counts
+ggplot(blood_tbl, aes(x = type, y = count)) +
   geom_bar(stat = "identity") +
-  labs(x = "Blood type", y = "Number of donors", title = "Distribution of blood types among donors") +
-  theme_minimal()
+  labs(x = "Blood type", y = "Number of donors", title = "Distribution of blood types among donors") 
 ```
 
 The vertical bar chart emphasizes how common type O is relative to the others. You could flip the axes to make a horizontal bar chart if your category names are long or if you prefer to read labels on the y‑axis.
@@ -365,7 +448,15 @@ A dental clinic tracks why patients miss scheduled cleanings. Out of 100 missed 
 reasons <- tibble(
   reason = c("Forgot", "Fear", "Cost", "Other"),
   count = c(50, 20, 15, 15)
-) %>% mutate(prop = count / sum(count))
+) |> mutate(prop = count / sum(count))
+
+```
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
 # pie chart
 ggplot(reasons, aes(x = "", y = prop, fill = reason)) +
   geom_bar(width = 1, stat = "identity") +
@@ -429,7 +520,16 @@ patients <- tibble(
   group = sample(c("Treatment", "Control"), size = 120, replace = TRUE),
   satisfaction = sample(c("Satisfied", "Neutral", "Dissatisfied"), size = 120, replace = TRUE, prob = c(0.6,0.25,0.15))
 )
-clust_tbl <- patients %>% count(group, satisfaction)
+clust_tbl <- patients |> count(group, satisfaction)
+
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+clust_tbl <- patients |> count(group, satisfaction)
 ggplot(clust_tbl, aes(x = satisfaction, y = n, fill = group)) +
   geom_bar(position = "dodge", stat = "identity") +
   labs(x = "Satisfaction category", y = "Number of patients", fill = "Group",
@@ -446,13 +546,22 @@ In a **stacked bar chart**, bars for each category are stacked atop one another.
 set.seed(2022)
 dept <- sample(c("Orthopedics","Cardiology","Neurology"), size = 150, replace = TRUE)
 injury <- sample(c("Sprain","Fracture","Other"), size = 150, replace = TRUE, prob = c(0.4,0.35,0.25))
-er_tbl <- tibble(dept, injury) %>% count(dept, injury) %>% group_by(dept) %>% mutate(prop = n / sum(n))
+er_tbl <- tibble(dept, injury) |> count(dept, injury) |> group_by(dept) |> mutate(prop = n / sum(n))
+
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
 # stacked count
 ggplot(er_tbl, aes(x = dept, y = n, fill = injury)) +
   geom_bar(stat = "identity") +
   labs(x = "Department", y = "Emergency visits", fill = "Injury type",
        title = "Types of injuries by department") +
   theme_minimal()
+
 # 100% stacked
 ggplot(er_tbl, aes(x = dept, y = prop, fill = injury)) +
   geom_bar(stat = "identity") +
@@ -465,9 +574,119 @@ ggplot(er_tbl, aes(x = dept, y = prop, fill = injury)) +
 
 Stacked bars are useful when you care about the total across categories, but they hide patterns in the middle segments. In the last plot, you can easily compare the overall emergency visits across departments and the share of fractures, but it’s harder to compare the “other” injuries across departments because their segments float at different heights. If your goal is to compare subgroups, a clustered bar chart is usually better.
 
-### Working in JMP
 
-In JMP, bar and pie charts live in the **Graph Builder**. Drag your categorical variable to the X‑axis and drop the **N** or **%** statistic onto the Y‑axis to create a bar chart. To cluster by a second categorical variable, drop it in the **Group** or **Overlay** zone, and choose *Bar (Horizontal)* or *Bar (Vertical)* from the chart palette. To stack, use the **Stack** option in the legend. To make a pie chart, drag the categorical variable to a blank canvas and choose *Pie*; JMP will automatically convert counts to percentages and label the slices. Use the red triangle (▸) menu to display data labels, reorder slices, or combine small categories into an “Other” slice.
+
+### Making categorical charts in R
+
+All of the chart types in this section can be built with `ggplot2`. We will use a small dataset of 40 transactions at a retail store to demonstrate each one.
+
+```{r}
+#| echo: true
+#| message: false
+
+library(tidyverse)
+
+transactions <- tibble(
+  method = c("Credit", "Credit", "Cash", "Debit", "Credit",
+             "Cash", "Debit", "Credit", "Credit", "Cash",
+             "Digital Wallet", "Credit", "Debit", "Cash", "Credit",
+             "Debit", "Digital Wallet", "Credit", "Cash", "Debit",
+             "Credit", "Credit", "Cash", "Debit", "Digital Wallet",
+             "Credit", "Cash", "Credit", "Debit", "Credit",
+             "Digital Wallet", "Cash", "Credit", "Debit", "Cash",
+             "Credit", "Digital Wallet", "Cash", "Credit", "Debit"),
+  region = c("North", "South", "North", "South", "North",
+             "South", "North", "South", "North", "South",
+             "North", "South", "North", "South", "North",
+             "South", "North", "South", "North", "South",
+             "North", "North", "South", "South", "North",
+             "South", "North", "North", "South", "South",
+             "North", "South", "North", "North", "South",
+             "South", "North", "North", "South", "South")
+)
+```
+
+#### Bar chart
+
+```{r}
+#| echo: true
+
+ggplot(transactions, aes(x = method)) +
+  geom_bar(fill = "steelblue") +
+  labs(x = "Payment Method", y = "Count",
+       title = "Transaction counts by payment method") +
+  theme_minimal()
+```
+
+`geom_bar()` counts the observations for you. To plot pre-computed values from a summary table, use `geom_col()` instead.
+
+#### Pie chart
+
+A pie chart uses `coord_polar()` to bend a stacked bar into a circle:
+
+```{r}
+#| echo: true
+
+method_counts <- transactions |> count(method)
+
+ggplot(method_counts, aes(x = "", y = n, fill = method)) +
+  geom_col(width = 1) +
+  coord_polar(theta = "y") +
+  labs(fill = "Payment Method", title = "Payment method distribution") +
+  theme_void()
+```
+
+Pie charts work best with a small number of categories. When slices are similar in size or there are many categories, a bar chart is easier to read.
+
+#### Clustered (side-by-side) bar chart
+
+To compare a categorical variable across groups, map the grouping variable to `fill` and set `position = "dodge"`:
+
+```{r}
+#| echo: true
+
+ggplot(transactions, aes(x = method, fill = region)) +
+  geom_bar(position = "dodge") +
+  labs(x = "Payment Method", y = "Count", fill = "Region",
+       title = "Payment method by region (clustered)") +
+  theme_minimal()
+```
+
+Clustered bars make it easy to compare the same category across groups because each subgroup shares a common baseline.
+
+#### Stacked bar chart
+
+Replace `"dodge"` with `"stack"` (the default) to stack the groups within each bar:
+
+```{r}
+#| echo: true
+
+ggplot(transactions, aes(x = method, fill = region)) +
+  geom_bar(position = "stack") +
+  labs(x = "Payment Method", y = "Count", fill = "Region",
+       title = "Payment method by region (stacked)") +
+  theme_minimal()
+```
+
+Stacked bars show the total count for each category and how it breaks down by group. However, comparing the inner segments across bars is harder because they do not share a common baseline.
+
+#### 100% stacked bar chart
+
+Use `position = "fill"` to scale each bar to 100%, showing the *proportion* of each group within every category:
+
+```{r}
+#| echo: true
+
+ggplot(transactions, aes(x = method, fill = region)) +
+  geom_bar(position = "fill") +
+  labs(x = "Payment Method", y = "Proportion", fill = "Region",
+       title = "Payment method by region (100% stacked)") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+```
+
+This view is useful for comparing the *composition* across categories regardless of total size. It answers questions like "What share of digital wallet transactions come from each region?"
+
 
 ### Recap
 
@@ -660,11 +879,19 @@ We can extend our cavities example to compute relative and cumulative frequencie
 #| echo: false
 #| message: false
 #| warning: false
-cavity_tbl <- cavity_tbl %>%
+cavity_tbl <- cavity_tbl |>
   mutate(relative_frequency = frequency / sum(frequency),
          cumulative_frequency = cumsum(frequency) / sum(frequency))
 
 cavity_tbl|> kableExtra::kable()
+
+```
+
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
 
 # Plot an ogive (cumulative frequency graph)
 ggplot(cavity_tbl, aes(x = 0:6, y = cumulative_frequency)) +
@@ -689,7 +916,6 @@ ggplot(cavity_tbl, aes(x = 0:6, y = cumulative_frequency)) +
 #| warning: false
 
 
-
 bp_tbl <- tibble(bp = bp) |>
   mutate(class = cut(
     bp,
@@ -699,11 +925,20 @@ bp_tbl <- tibble(bp = bp) |>
   count(class, name = "frequency")
 
 
-bp_tbl <- bp_tbl %>%
+bp_tbl <- bp_tbl |>
   mutate(relative_frequency = frequency / sum(frequency),
          cumulative_frequency = cumsum(frequency) / sum(frequency))
 
 bp_tbl|> kableExtra::kable()
+
+```
+
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
 
 # Plot an ogive (cumulative frequency graph)
 ggplot(bp_tbl, aes(x = 0:6, y = cumulative_frequency)) +
@@ -713,7 +948,7 @@ ggplot(bp_tbl, aes(x = 0:6, y = cumulative_frequency)) +
        y = "Cumulative proportion",
        title = "Ogive of Systolic Blood Pressure") +
   theme_minimal()+
-  scale_x_continuous(breaks = c(0, 1, 2, 3, 4, 5, 6), # specify where ticks appear
+  scale_x_continuous(breaks = c(0, 1, 2, 3, 4, 5, 6), 
                      labels = c("[85,95)", "[95,105)", "[105,115)", "[115,125)", "[125,135)", "[135,145)", "[145,155)"))+
   ylim(0,1)
 ```
@@ -724,13 +959,6 @@ ggplot(bp_tbl, aes(x = 0:6, y = cumulative_frequency)) +
 ### Choosing the number of classes
 
 Selecting an appropriate number of classes is more art than science, but a few guidelines help. Many textbooks suggest between 5 and 20 classes; an alternative rule of thumb for histograms is to use 5 to 15 bars. As the sample size grows, more classes allow finer detail, but too many classes produce a sparse table. In practice, try several class widths and see which one provides a clear picture of the data. Software like JMP and R will automatically suggest class widths, but you can adjust them manually.
-
-### Working in JMP
-
-To organize quantitative data in JMP:
-
-* Use **Analyze → Distribution** and assign your quantitative variable to the Y‑axis. JMP will display a histogram along with a frequency table showing counts, percentages, and cumulative percentages. The red triangle (▸) menu lets you change the number of bins or show the cumulative distribution.
-* To extract a frequency table without a histogram, go to **Analyze → Tabulate**, drag your quantitative variable to the **Drop Zone for columns**, and select a statistic such as **N** or **Percent**. JMP’s Tabulate platform can create grouped summaries by another variable (e.g., cavities by gender).
 
 ### Recap
 
@@ -1117,12 +1345,83 @@ As datasets grow larger, dotplots can become cluttered and difficult to read. In
 * **Stem‑and‑leaf plots** preserve actual data values and work well for small to moderate samples. They quickly show the shape and allow you to recover the raw data.
 * **Dotplots** also preserve individual values and are easy to interpret for small datasets; they can handle discrete counts and continuous measurements.
 
-### Working in JMP
 
-In JMP:
 
-* To create a histogram or stem‑and‑leaf plot, use **Analyze → Distribution**. For stem‑and‑leaf plots, JMP automatically splits stems if needed and prints the “leaf unit.” The red triangle (▸) menu lets you toggle between histogram and stem‑and‑leaf views.
-* To build a dotplot, open **Graph Builder**, drag your quantitative variable to the X‑axis, and choose “Dot Plot” from the element palette.
+### Making quantitative plots in R
+
+We will use a small dataset of 35 employee commute times (in minutes) to demonstrate histograms, stem-and-leaf plots, and dotplots.
+
+```{r}
+#| echo: true
+#| message: false
+
+library(tidyverse)
+
+commute <- c(12, 15, 18, 20, 22, 22, 25, 27, 28, 30,
+             30, 32, 33, 35, 35, 36, 38, 40, 40, 42,
+             43, 45, 45, 47, 48, 50, 52, 55, 58, 60,
+             62, 65, 70, 75, 85)
+```
+
+#### Histogram
+
+Use `geom_histogram()` and set `bins` or `binwidth` to control the number of classes:
+
+```{r}
+#| echo: true
+
+ggplot(tibble(commute), aes(x = commute)) +
+  geom_histogram(binwidth = 10, fill = "steelblue",
+                 color = "white", boundary = 10) +
+  labs(x = "Commute time (minutes)", y = "Count",
+       title = "Distribution of employee commute times") +
+  theme_minimal()
+```
+
+The `boundary` argument aligns bin edges to round numbers (10, 20, 30, ...). To make a **relative frequency histogram**, map the y-axis to `after_stat(count / sum(count))`:
+
+```{r}
+#| echo: true
+
+ggplot(tibble(commute), aes(x = commute,
+                            y = after_stat(count / sum(count)))) +
+  geom_histogram(binwidth = 10, fill = "steelblue",
+                 color = "white", boundary = 10) +
+  labs(x = "Commute time (minutes)", y = "Relative frequency",
+       title = "Relative frequency histogram of commute times") +
+  theme_minimal()
+```
+
+#### Stem-and-leaf plot
+
+R has a built-in `stem()` function. It prints text output rather than a graphic, but it is quick and preserves every data value:
+
+```{r}
+#| echo: true
+
+stem(commute)
+```
+
+Each row shows a stem (the tens digit) on the left and the leaves (the ones digits) on the right. For example, the row `2 | 0 2 2 5 7 8` means the values 20, 22, 22, 25, 27, and 28 are in the dataset. Use `stem(commute, scale = 2)` to split each stem into two rows for a more detailed view.
+
+#### Dotplot
+
+A dotplot places a dot for each observation along a number line. Use `geom_dotplot()` with `method = "histodot"` so dots stack neatly:
+
+```{r}
+#| echo: true
+
+ggplot(tibble(commute), aes(x = commute)) +
+  geom_dotplot(method = "histodot", binwidth = 3,
+               fill = "steelblue", dotsize = 0.8) +
+  labs(x = "Commute time (minutes)",
+       title = "Dotplot of employee commute times") +
+  scale_y_continuous(NULL, breaks = NULL) +
+  theme_minimal()
+```
+
+The `binwidth` argument controls how close two values must be to stack together. Adjusting it changes the resolution of the display---a smaller binwidth shows more detail, while a larger one groups nearby values.
+
 
 ### Recap
 
